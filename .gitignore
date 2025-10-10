@@ -1,0 +1,49 @@
+# 操作系统和编辑器文件
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 日志文件
+*.log
+logs/
+
+# 环境变量和敏感文件
+.env
+.env.local
+.env.production
+application.properties  # Spring Boot 敏感配置（如数据库密码），建议用 application-example.properties 替代提交
+application-*.yml
+keystore.jks
+
+# React 前端（React 文件夹）
+/React/node_modules/
+/React/build/
+/React/.next/  # 如果用 Next.js
+/React/dist/
+/React/*.log
+
+# Spring Boot 后端（SpringBoot 文件夹）
+/SpringBoot/target/
+/SpringBoot/.mvn/wrapper/maven-wrapper.jar  # Maven wrapper
+/SpringBoot/mvnw
+/SpringBoot/mvnw.cmd
+/SpringBoot/.mvn/
+/SpringBoot/src/main/resources/application.properties  # 重复忽略，强调敏感文件
+
+# MySQL 相关（如果有本地数据库文件或脚本）
+*.sql  # 本地备份 SQL，除非是种子数据
+mysql-data/  # 如果有本地 MySQL 数据目录
+dump.sql
+
+# 构建和临时文件
+*.tmp
+*.temp
+.cache/
+coverage/
+
+# 其他通用
+*.class  # Java 编译文件
+*.jar  # 打包 JAR，除非是最终产物

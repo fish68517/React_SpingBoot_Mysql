@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Three.js 3D 全景展厅 Demo</title>
+    <style>
+        /* 确保canvas铺满整个屏幕 */
+        body { margin: 0; }
+        canvas { display: block; }
+
+        /* 操作说明的样式 */
+        #instructions {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 24px;
+            font-family: sans-serif;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="instructions">
+        <p>点击屏幕开始</p>
+        <p>使用 W/A/S/D 或方向键移动</p>
+        <p>使用鼠标环顾四周</p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // 从 'three' 库中导入所需模块
+        import * as THREE from 'three';
+        // 导入第一人称视角控制器
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+
+        // 1. 初始化基础组件：场景、相机、渲染器
+        const scene = new THREE.Scene();
+        // 设置一个透视相机 (视野角度, 宽高比, 近裁剪面, 远裁剪面)
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // 初始化渲染器
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. 创建 3D 展厅（核心部分）
+        // 定义展厅尺寸
+        const roomSize = { width: 40, height: 20, depth: 60 };
+
+        // 使用 TextureLoader 来加载图片
+        const textureLoader = new THREE.TextureLoader();
+
+        // 为立方体的6个面分别加载不同的图片作为“摄影作品”
+        // 你可以把这些URL换成你自己的作品图片链接
+        const materials = [
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('https://picsum.photos/seed/1/800/600'), side: THREE.BackSide }), // 右面
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('https://picsum.photos/seed/2/800/600'), side: THREE.BackSide }), // 左面
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('https://picsum.photos/seed/3/800/600'), side: THREE.BackSide }), // 上面 (天花板)
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('https://picsum.photos/seed/4/800/600'), side: THREE.BackSide }), // 下面 (地板)
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('https://picsum.photos/seed/5/800/600'), side: THREE.BackSide }), // 前面
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('https://picsum.photos/seed/6/800/600'), side: THREE.BackSide }), // 后面
+        ];
+        
+        // 创建一个立方体几何体作为展厅
+        const roomGeometry = new THREE.BoxGeometry(roomSize.width, roomSize.height, roomSize.depth);
+        // 将几何体和材质（6张图片）结合成一个网格模型
+        const room = new THREE.Mesh(roomGeometry, materials);
+        // 将展厅添加到场景中
+        scene.add(room);
+
+        // 3. 添加光源
+        // 添加一个环境光，让场景整体都有亮度，不会有纯黑的地方
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        // 添加一个点光源，像一个灯泡，可以制造一些光影效果
+        const pointLight = new THREE.PointLight(0xffffff, 0.8, 100);
+        pointLight.position.set(0, roomSize.height / 2 - 2, 0); // 放在房间中心靠上的位置
+        scene.add(pointLight);
+
+        // 4. 设置相机初始位置
+        camera.position.z = 5; // 将相机放在房间里
+
+        // 5. 添加第一人称控制器 (PointerLockControls)
+        const controls = new PointerLockControls(camera, renderer.domElement);
+        const instructions = document.getElementById('instructions');
+
+        // 添加点击事件，点击操作说明界面后锁定鼠标指针，开始控制
+        instructions.addEventListener('click', function () {
+            controls.lock();
+        });
+
+        // 当鼠标锁定状态改变时，更新操作说明的显示
+        controls.addEventListener('lock', function () {
+            instructions.style.display = 'none';
+        });
+        controls.addEventListener('unlock', function () {
+            instructions.style.display = 'flex';
+        });
+
+        scene.add(controls.getObject()); // 将控制器添加到场景中
+
+        // 6. 实现键盘移动逻辑
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+        const moveSpeed = 80.0; // 移动速度
+
+        const onKeyDown = function (event) {
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = true;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = true;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = true;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = true;
+                    break;
+            }
+        };
+
+        const onKeyUp = function (event) {
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = false;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = false;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = false;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = false;
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+
+        // 7. 动画循环
+        const clock = new THREE.Clock(); // 用于计算时间差，使移动更平滑
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta(); // 获取自上一帧以来的时间
+
+            if (controls.isLocked === true) {
+                // 重置速度
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+
+                // 计算方向
+                direction.z = Number(moveForward) - Number(moveBackward);
+                direction.x = Number(moveRight) - Number(moveLeft);
+                direction.normalize(); // 保证斜向移动速度和直线移动一致
+
+                if (moveForward || moveBackward) velocity.z -= direction.z * moveSpeed * delta;
+                if (moveLeft || moveRight) velocity.x -= direction.x * moveSpeed * delta;
+
+                // 根据速度移动控制器
+                controls.moveRight(-velocity.x * delta);
+                controls.moveForward(-velocity.z * delta);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // 8. 监听窗口大小变化，自适应调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>

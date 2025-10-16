@@ -1,28 +1,60 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
+import { Routes, Route, Navigate } from 'react-router-dom';
+
+// 导入布局组件
+import UserLayout from './components/UserLayout';
+import AdminLayout from './pages/admin/AdminLayout';
+
+// 导入所有前台页面
 import HomePage from './pages/HomePage';
 import Gallery3DPage from './pages/Gallery3DPage';
 import UploadPage from './pages/UploadPage';
+import CommunityPage from './pages/CommunityPage';
+
+// 导入独立的登录/注册页面
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage'; // 假设你已经创建了此文件
+import RegisterPage from './pages/RegisterPage';
+
+// 导入所有后台管理页面
+import Dashboard from './pages/admin/Dashboard';
+import UserManagement from './pages/admin/UserManagement';
+import ArtworkApproval from './pages/admin/ArtworkApproval';
+import CommentManagement from './pages/admin/CommentManagement';
+import ContentRec from './pages/admin/ContentRec';
+
 
 function App() {
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-sans">
-      <Header />
-      <main className="pt-24 pb-12">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/gallery" element={<Gallery3DPage />} />
-          <Route path="/upload" element={<UploadPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          {/* 在这里可以继续添加更多路由，比如用户个人主页 */}
-          {/* <Route path="/profile/:userId" element={<ProfilePage />} /> */}
-        </Routes>
-      </main>
-    </div>
+    // <Routes> 是所有路由规则的容器
+    <Routes>
+      
+      {/* --- 前台页面路由 --- */}
+      {/* 所有匹配 "/" 根路径下的路由，都会先加载 UserLayout 组件 */}
+      <Route path="/" element={<UserLayout />}>
+        {/* index 表示根路径 "/" 的默认页面 */}
+        <Route index element={<HomePage />} /> 
+        <Route path="gallery" element={<Gallery3DPage />} />
+        <Route path="community" element={<CommunityPage />} />
+        <Route path="upload" element={<UploadPage />} />
+      </Route>
+
+      {/* --- 后台管理路由 --- */}
+      {/* 所有匹配 "/admin" 路径下的路由，都会先加载 AdminLayout 组件 */}
+      <Route path="/admin" element={<AdminLayout />}>
+        {/* index + Navigate 表示访问 "/admin" 时，自动跳转到 "/admin/dashboard" */}
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="users" element={<UserManagement />} />
+        <Route path="artworks" element={<ArtworkApproval />} />
+        <Route path="comments" element={<CommentManagement />} />
+        <Route path="recommend" element={<ContentRec />} />
+      </Route>
+
+      {/* --- 独立页面路由 (没有通用布局) --- */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+    </Routes>
   );
 }
 

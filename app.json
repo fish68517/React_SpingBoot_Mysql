@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "10baee70-ebaf-491f-a79d-7cec5537ca62"
+      }
+    },
+    "android": {
+      "package": "com.tklinh.lostandfoundapp"
+    }
+  }
+}

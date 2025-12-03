@@ -21,9 +21,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .setCachePeriod(3600); // 缓存时间1小时
     }
 
-    /**
-     * 配置跨域支持
-     */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

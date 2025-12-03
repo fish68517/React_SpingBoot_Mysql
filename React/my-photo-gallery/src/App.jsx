@@ -34,7 +34,7 @@ function App() {
         {/* index 表示根路径 "/" 的默认页面 */}
         <Route index element={<HomePage />} /> 
         <Route path="gallery" element={<Gallery3DPage />} />
-        <Route path="community" element={<CommunityPage />} />
+        <Route path="communityPage" element={<CommunityPage />} />
         <Route path="upload" element={<UploadPage />} />
       </Route>
 

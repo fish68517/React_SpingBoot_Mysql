@@ -10,34 +10,27 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * <p>
- * 
- * </p>
- *
- * @author 张三
- * @since 2025-08-27
- */
-// 1. 用户实体
+// 3. 社区文章实体
 @Data
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "community_posts")
+public class CommunityPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String username;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User author;
 
-    @Column(nullable = false)
-    private String password; // 存储加密后的密码
+    private String title;
+    private String excerpt;
 
-    private String nickname;
-    private String avatar;
-    private String email;
+    @Column(columnDefinition = "TEXT")
+    private String content;
 
-    private String role; // "USER" or "ADMIN"
+    private String tags;
+    private Integer views = 0;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

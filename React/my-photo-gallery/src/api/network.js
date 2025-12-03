@@ -218,21 +218,69 @@ export const rejectArtwork = (id) => {
 // ==========================================
 
 export const getDashboardStats = () => {
-    // return request('/admin/dashboard/stats'); // 真实接口
+     return request('/admin/dashboard/stats'); // 真实接口
     
     console.log("正在获取看板数据...");
     // 模拟数据
-    return Promise.resolve({
-        totalUsers: 1024,
-        totalArtworks: 356,
-        totalComments: 892,
-        pendingArtworks: 12, // 待审核数量
-        weeklyVisits: [150, 230, 224, 218, 135, 147, 260], // 模拟一周访问量趋势
-        recentActivities: [
-            { id: 1, user: '张宇', action: '发布了新作品', target: '城市之光', time: '10分钟前' },
-            { id: 2, user: '周艳秋', action: '注册了账号', target: '', time: '2小时前' },
-            { id: 3, user: 'Admin', action: '审核通过了', target: '静谧森林', time: '5小时前' },
-            { id: 4, user: '李四', action: '评论了', target: '星空下的轨迹', time: '1天前' },
-        ]
-    });
+    // return Promise.resolve({
+    //     totalUsers: 1024,
+    //     totalArtworks: 356,
+    //     totalComments: 892,
+    //     pendingArtworks: 12, // 待审核数量
+    //     weeklyVisits: [150, 230, 224, 218, 135, 147, 260], // 模拟一周访问量趋势
+    //     recentActivities: [
+    //         { id: 1, user: '张宇', action: '发布了新作品', target: '城市之光', time: '10分钟前' },
+    //         { id: 2, user: '周艳秋', action: '注册了账号', target: '', time: '2小时前' },
+    //         { id: 3, user: 'Admin', action: '审核通过了', target: '静谧森林', time: '5小时前' },
+    //         { id: 4, user: '李四', action: '评论了', target: '星空下的轨迹', time: '1天前' },
+    //     ]
+    // });
+};
+
+
+// 6. 管理员接口 (Admin - 评论管理) [新增]
+// ==========================================
+
+export const getAllComments = () => {
+    //return request('/admin/comments'); // 真实接口
+    
+    console.log("正在获取评论列表...");
+    return Promise.resolve([
+        { 
+            id: 1, 
+            user: '张宇', 
+            avatar: 'https://placehold.co/50',
+            content: '这张照片的光影处理简直太棒了！', 
+            target: '城市之光', 
+            targetType: '作品', 
+            createdAt: '2023-10-27 10:30',
+            status: 'Normal' 
+        },
+        { 
+            id: 2, 
+            user: 'Guest_992', 
+            avatar: 'https://placehold.co/50',
+            content: '加我微信 XXXXX 购买低价器材...', 
+            target: '静谧森林', 
+            targetType: '作品',
+            createdAt: '2023-10-27 11:15',
+            status: 'Reported' 
+        },
+        { 
+            id: 3, 
+            user: '李四', 
+            avatar: 'https://placehold.co/50',
+            content: '学到了，原来自然光还可以这样用。', 
+            target: '人像摄影入门', 
+            targetType: '文章',
+            createdAt: '2023-10-26 15:20',
+            status: 'Normal' 
+        },
+    ]);
+};
+
+export const deleteComment = (id) => {
+    // return request(`/admin/comments/${id}`, { method: 'DELETE' });
+    console.log(`删除评论 ${id}`);
+    return Promise.resolve({ success: true });
 };

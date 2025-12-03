@@ -18,7 +18,7 @@ public class Comments {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User author; // 关联 User 实体
-    
+
     private String content;
     @Column(name = "created_at")
     private LocalDateTime createdAt;

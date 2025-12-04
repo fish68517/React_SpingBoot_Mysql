@@ -15,4 +15,5 @@ public class ArtworkDTO {
     private Integer views;
     private Integer likes;
     private LocalDateTime createdAt;
+    private Long userId;
 }

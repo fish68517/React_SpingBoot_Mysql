@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getArtworks } from '../api/network'; // 引入新的 API 请求
+import { getArtworks } from '../api/network';
+import { getImageUrl } from '../utils/imageUtils'; // 1. 引入工具类
 
 const HomePage = () => {
   const [artworks, setArtworks] = useState([]);
 
-  // 使用 useEffect 在组件加载时获取数据
   useEffect(() => {
     const loadArtworks = async () => {
       try {
@@ -15,22 +15,31 @@ const HomePage = () => {
       }
     };
     loadArtworks();
-  }, []); // 空依赖数组表示只在组件首次渲染时执行
+  }, []);
+
+  // 图片加载失败时的处理函数
+  const handleImageError = (e) => {
+    e.target.src = 'https://via.placeholder.com/400x300?text=Image+Error'; // 替换为错误占位图
+    e.target.onerror = null; // 防止无限循环
+  };
 
   return (
-    <div className="container mx-auto px-4">
-      <h2 className="text-4xl font-bold text-center mb-12">探索摄影世界</h2>
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-8">
+    <div className="container mx-auto px-4 min-h-screen">
+      <h2 className="text-4xl font-bold text-center mb-12 mt-10">探索摄影世界</h2>
+      <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
         {artworks.map(artwork => (
-          <div key={artwork.id} className="mb-8 break-inside-avoid cursor-pointer group">
+          <div key={artwork.id} className="break-inside-avoid cursor-pointer group rounded-lg overflow-hidden">
+            {/* 2. 使用 getImageUrl 转换路径 */}
             <img 
-              src={artwork.imageUrl}
+              src={getImageUrl(artwork.imageUrl)}
               alt={artwork.title} 
-              className="w-full h-auto rounded-lg shadow-lg group-hover:opacity-80 transition-opacity duration-300" 
+              onError={handleImageError} // 3. 添加错误处理
+              className="w-full h-auto rounded-lg shadow-lg group-hover:opacity-80 transition-opacity duration-300 transform group-hover:scale-[1.02] transition-transform" 
             />
             <div className="mt-2">
               <h3 className="font-bold text-lg">{artwork.title}</h3>
-              <p className="text-gray-400">作者: {artwork.author}</p>
+              {/* 这里我把你原本隐藏的作者显示出来了，如果确实要隐藏请保留 display: none */}
+              <p className="text-gray-400 text-sm">作者: {artwork.authorName}</p>
             </div>
           </div>
         ))}

@@ -70,30 +70,93 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* 2. 访问趋势图表 (模拟) */}
                 <div className="lg:col-span-2 bg-gray-800 rounded-lg p-6 shadow-lg">
-                    <h3 className="text-xl font-bold text-white mb-6">本周访问趋势</h3>
-                    <div className="h-64 flex items-end justify-between space-x-2 px-4">
-                        {stats.weeklyVisits.map((val, idx) => (
-                            <div key={idx} className="w-full flex flex-col items-center group relative">
-                                {/* Tooltip */}
-                                <span className="absolute -top-8 bg-gray-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition mb-2 text-white">
-                                    {val}
-                                </span>
-                                {/* Bar */}
-                                <div 
-                                    className="w-full bg-blue-600 hover:bg-blue-500 rounded-t transition-all duration-300" 
-                                    style={{ height: `${(val / 300) * 100}%` }}
-                                ></div>
-                                {/* Label */}
-                                <span className="text-gray-500 text-xs mt-2">
-                                    {['周一', '周二', '周三', '周四', '周五', '周六', '周日'][idx]}
-                                </span>
-                            </div>
+    <h3 className="text-xl font-bold text-white mb-6">本周访问趋势</h3>
+    
+    {/* 图表容器 */}
+    <div className="h-64 relative px-4 flex items-end">
+        {(() => {
+            const data = stats.weeklyVisits;
+            const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            const maxVal = 300; // 这里的最大值需与你之前的一致，或者 Math.max(...data)
+            
+            // 计算坐标点的辅助函数 (返回百分比)
+            const getPoints = () => {
+                return data.map((val, idx) => {
+                    const x = (idx / (data.length - 1)) * 100;
+                    const y = 100 - (val / maxVal) * 100; // SVG是从上往下画，所以要用100减
+                    return `${x},${y}`;
+                }).join(' ');
+            };
+
+            return (
+                <>
+                    {/* 背景网格线 (可选) */}
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                            <div key={i} className="border-t border-white w-full h-0"></div>
                         ))}
                     </div>
-                </div>
 
+                    {/* SVG 线条层 */}
+                    <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0" preserveAspectRatio="none" viewBox="0 0 100 100">
+                         {/* 渐变填充区域 */}
+                        <defs>
+                            <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.5" />
+                                <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <polygon 
+                            points={`0,100 ${getPoints()} 100,100`} 
+                            fill="url(#gradient)" 
+                        />
+                        
+                        {/* 折线本身 */}
+                        <polyline 
+                            points={getPoints()} 
+                            fill="none" 
+                            stroke="#3B82F6" 
+                            strokeWidth="2" 
+                            vectorEffect="non-scaling-stroke" // 防止线条拉伸变形
+                        />
+                    </svg>
+
+                    {/* 数据点与交互层 (Tooltip) */}
+                    <div className="absolute inset-0 w-full h-full z-10">
+                        {data.map((val, idx) => {
+                            // 计算位置
+                            const left = `${(idx / (data.length - 1)) * 100}%`;
+                            const bottom = `${(val / maxVal) * 100}%`;
+
+                            return (
+                                <div 
+                                    key={idx} 
+                                    className="absolute group flex flex-col items-center"
+                                    style={{ left: left, bottom: bottom, transform: 'translate(-50%, 50%)' }}
+                                >
+                                    {/* Tooltip */}
+                                    <span className="absolute bottom-full mb-2 bg-gray-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap text-white pointer-events-none z-20">
+                                        {val} 次访问
+                                    </span>
+                                    
+                                    {/* 圆点 (Hover时放大) */}
+                                    <div className="w-3 h-3 bg-blue-600 rounded-full border-2 border-gray-800 group-hover:scale-150 group-hover:bg-white transition-transform duration-200 cursor-pointer shadow-sm"></div>
+
+                                    {/* 底部标签 (X轴文字) */}
+                                    <span className="absolute top-6 text-gray-500 text-xs whitespace-nowrap mt-2">
+                                        {labels[idx]}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
+            );
+        })()}
+    </div>
+</div>
                 {/* 3. 最近活动动态 */}
-                <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <div className="bg-gray-800 rounded-lg p-6 shadow-lg" style={{ display: 'none' }}>
                     <h3 className="text-xl font-bold text-white mb-6">最近动态</h3>
                     <div className="space-y-6">
                         {stats.recentActivities && stats.recentActivities.map(activity => (

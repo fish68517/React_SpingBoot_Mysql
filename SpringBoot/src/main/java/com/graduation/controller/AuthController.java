@@ -1,5 +1,6 @@
 package com.graduation.controller;
 
+import com.graduation.JwtUtil;
 import com.graduation.dto.AuthResponse;
 import com.graduation.dto.LoginRequest;
 import com.graduation.dto.RegisterRequest;
@@ -41,8 +42,14 @@ public class AuthController {
         userDTO.setRole(user.getRole());
 
         AuthResponse response = new AuthResponse();
-        response.setToken("mock-jwt-token-" + user.getId()); // 模拟 Token
+
         response.setUser(userDTO);
+
+
+        // 2. 生成 Token 时，传入 userId
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername());
+
+        response.setToken(token); // 模拟 Token
 
         return ResponseEntity.ok(response);
     }
@@ -56,8 +63,8 @@ public class AuthController {
         user.setUsername(registerRequest.getUsername());
         user.setPassword(registerRequest.getPassword()); // 实际应加密
         user.setRole("USER");
-        user.setNickname("新用户");
+        user.setNickname(registerRequest.getUsername());
         userRepository.save(user);
-        return ResponseEntity.ok("注册成功");
+        return ResponseEntity.ok(java.util.Collections.singletonMap("message", "注册成功"));
     }
 }

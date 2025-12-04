@@ -31,8 +31,19 @@ function App() {
       {/* --- 前台页面路由 --- */}
       {/* 所有匹配 "/" 根路径下的路由，都会先加载 UserLayout 组件 */}
       <Route path="/" element={<UserLayout />}>
-        {/* index 表示根路径 "/" 的默认页面 */}
-        <Route index element={<HomePage />} /> 
+        {/* 
+           1. 修改这里：
+           访问根路径 "/" (即 localhost:5173) 时，
+           使用 Navigate 自动跳转到 "/login" 
+        */}
+        <Route index element={<Navigate to="/login" replace />} />
+
+        {/* 
+           2. 建议修改：
+           如果登录后还需要访问主页，给 HomePage 一个具体的路径，比如 "/home" 
+           访问地址变为: localhost:5173/home
+        */}
+        <Route path="home" element={<HomePage />} /> 
         <Route path="gallery" element={<Gallery3DPage />} />
         <Route path="communityPage" element={<CommunityPage />} />
         <Route path="upload" element={<UploadPage />} />

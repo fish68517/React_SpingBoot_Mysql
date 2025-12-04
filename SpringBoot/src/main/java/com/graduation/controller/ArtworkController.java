@@ -3,12 +3,14 @@ package com.graduation.controller;
 import com.graduation.dto.ArtworkDTO;
 import com.graduation.entity.Artwork;
 import com.graduation.repository.ArtworkRepository;
+import com.graduation.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,15 +30,38 @@ public class ArtworkController {
     @Autowired
     private ArtworkRepository artworkRepository;
 
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @PostMapping("/artworks")
+    public ResponseEntity<Artwork> addArtworkqq(@RequestBody ArtworkDTO artworkDTO) {
+        artworkDTO.setCreatedAt(LocalDateTime.now());
+        Artwork artwork = convertToEntity(artworkDTO);
+        Artwork savedArtwork = artworkRepository.save(artwork);
+        return ResponseEntity.ok(savedArtwork);
+    }
+
     // --- 公共接口 ---
 
     // 获取所有已发布作品 (首页用)
     @GetMapping("/artworks")
     public List<ArtworkDTO> getAllArtworks() {
-        return artworkRepository.findByStatusOrderByCreatedAtDesc(1) // status=1 表示已发布
-                .stream()
+        // 获取 1 和2 的状态
+        List<Artwork> rejectedArtworks = artworkRepository.findByStatusOrderByCreatedAtDesc(0); // 拒绝
+        List<Artwork> pendingArtworks = artworkRepository.findByStatusOrderByCreatedAtDesc(1);  // 待审核过滤
+        List<Artwork> approvedArtworks = artworkRepository.findByStatusOrderByCreatedAtDesc(2); // 审核通过
+        List<Artwork> allArtworks = new ArrayList<>();
+        allArtworks.addAll(approvedArtworks);
+        allArtworks.addAll(pendingArtworks);
+        allArtworks.addAll(rejectedArtworks);
+        return allArtworks.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    /*    return artworkRepository.findByStatusOrderByCreatedAtDesc(1) // status=1 表示已发布
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());*/
     }
 
     // --- 管理员接口 (Admin) ---
@@ -96,5 +121,19 @@ public class ArtworkController {
             dto.setAuthorAvatar(artwork.getAuthor().getAvatar());
         }
         return dto;
+    }
+
+    private Artwork convertToEntity(ArtworkDTO dto) {
+        Artwork artwork = new Artwork();
+        artwork.setId(dto.getId());
+        artwork.setTitle(dto.getTitle());
+        artwork.setDescription(dto.getDescription());
+        artwork.setImageUrl(dto.getImageUrl());
+        artwork.setTags(dto.getTags());
+        artwork.setViews(dto.getViews());
+        artwork.setLikes(dto.getLikes());
+        artwork.setCreatedAt(dto.getCreatedAt());
+        userRepository.findById(dto.getUserId()).ifPresent(artwork::setAuthor); // 默认作者 ID 为 1
+        return artwork;
     }
 }

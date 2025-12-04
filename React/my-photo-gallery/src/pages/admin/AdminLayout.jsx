@@ -17,7 +17,7 @@ const AdminLayout = () => {
     { to: "/admin/users", text: "用户管理", icon: <ICONS.Users /> },
     { to: "/admin/artworks", text: "作品审核", icon: <ICONS.Artworks /> },
     { to: "/admin/comments", text: "评论管理", icon: <ICONS.Comments /> },
-    { to: "/admin/recommend", text: "内容推荐", icon: <ICONS.Recommend /> },
+    // { to: "/admin/recommend", text: "内容推荐", icon: <ICONS.Recommend /> },
   ];
 
   // NavLink 的 active 样式

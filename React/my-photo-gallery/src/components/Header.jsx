@@ -17,13 +17,13 @@ const Header = () => (
       </Link>
       <nav className="hidden md:flex space-x-6 items-center">
         {/* NavLink 可以根据当前路由是否匹配来添加 active 样式 */}
-        <NavLink to="/" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>首页</NavLink>
+        <NavLink to="/home" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>首页</NavLink>
         <NavLink to="/gallery" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>3D展廊</NavLink>
         {/* 新增的社区页面链接 */}
         <NavLink to="/communityPage" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>技巧社区</NavLink>
         <NavLink to="/upload" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>上传作品</NavLink>
       </nav>
-      <div className="space-x-4">
+      <div className="space-x-4" style={{ display: 'none' }} >
           <Link to="/login" className="bg-transparent hover:bg-blue-600 border border-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">
             登录
           </Link>

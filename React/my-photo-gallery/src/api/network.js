@@ -59,6 +59,21 @@ export const getArtworks = () => {
   // ]);
 };
 
+// 删除作品
+export const deleteArtwork = (id) => {
+  console.log("正在删除作品:", id);
+  return request(`/artworks/${id}`, { method: 'DELETE' });
+};
+
+// 更新作品
+export const updateArtwork = (id, updatedData) => {
+  console.log("正在更新作品:", id, updatedData);
+  return request(`/artworks/${id}`, { // 真实接口
+    method: 'PUT',
+    body: JSON.stringify(updatedData),
+  });
+};
+
 // 用户登录
 export const loginUser = (credentials) => {
   console.log("正在登录:", credentials);

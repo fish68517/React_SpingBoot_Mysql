@@ -101,6 +101,13 @@ public class ArtworkController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // 删除作品
+    @DeleteMapping("/artworks/{id}")
+    public ResponseEntity<?> deleteArtwork(@PathVariable Long id) {
+        artworkRepository.deleteById(id);
+        return ResponseEntity.ok(java.util.Collections.singletonMap("message", "删除成功"));
+    }
+
     // --- 辅助方法 ---
 
     private ArtworkDTO convertToDTO(Artwork artwork) {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { getArtworks } from '../api/network';
+import React, { useState, useEffect,useMemo } from 'react';
+import { getArtworks, deleteArtwork, updateArtwork} from '../api/network';
 import { getImageUrl } from '../utils/imageUtils';
 
 // --- 0. 引入本地图片资源 ---
@@ -105,7 +105,7 @@ const Carousel = () => {
 
 
 // --- 2. 创建可排序的单个 Artwork 组件 ---
-const SortableArtwork = ({ artwork, isEditing, handleImageError }) => {
+const SortableArtwork = ({ artwork, isEditing, handleImageError ,onDelete,onEdit}) => {
   // useSortable 钩子提供了拖拽所需的属性和样式
   const {
     attributes,
@@ -140,10 +140,24 @@ const SortableArtwork = ({ artwork, isEditing, handleImageError }) => {
         className="w-full h-auto object-cover group-hover:opacity-90 transition-opacity duration-300" 
       />
       
-      {/* 编辑模式下的提示图标 (可选) */}
+       {/* --- 编辑模式下的操作按钮 --- */}
       {isEditing && (
-        <div className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" /></svg>
+        <div className="absolute top-2 right-2 flex space-x-2 z-10">
+          <button 
+            onClick={(e) => { e.stopPropagation(); onEdit(artwork); }}
+            className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 shadow-sm transition"
+            title="修改"
+            style={{ display: false ? 'block' : 'none' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onDelete(artwork.id); }}
+            className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-sm transition"
+            title="删除"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
         </div>
       )}
 
@@ -151,6 +165,14 @@ const SortableArtwork = ({ artwork, isEditing, handleImageError }) => {
         <h3 className="font-bold text-lg truncate">{artwork.title}</h3>
         <p className="text-gray-500 text-sm">作者: {artwork.authorName}</p>
         <p className="text-gray-400 text-xs mt-1">分类: {artwork.tags}</p>
+         {/* 简单的标签展示 */}
+            <div className="flex space-x-1">
+                {artwork.tags && artwork.tags.split(',').slice(0, 2).map(tag => (
+                    <span key={tag} className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">
+                        {tag}
+                    </span>
+                ))}
+            </div>
       </div>
     </div>
   );
@@ -159,6 +181,7 @@ const SortableArtwork = ({ artwork, isEditing, handleImageError }) => {
 const HomePage = () => {
   const [artworks, setArtworks] = useState([]);
   const [isEditing, setIsEditing] = useState(false); // 控制编辑模式状态
+  const [selectedTag, setSelectedTag] = useState('全部');
 
   // 配置传感器 (鼠标和触摸)
   const sensors = useSensors(
@@ -184,6 +207,24 @@ const HomePage = () => {
     loadArtworks();
   }, []);
 
+
+    // --- 3. 自动计算所有唯一标签 ---
+  const allTags = useMemo(() => {
+    const tags = new Set(['全部']);
+    artworks.forEach(work => {
+        if (work.tags) {
+            work.tags.split(',').forEach(t => tags.add(t.trim()));
+        }
+    });
+    return Array.from(tags);
+  }, [artworks]);
+
+    // --- 4. 根据标签筛选数据 ---
+  const filteredArtworks = useMemo(() => {
+    if (selectedTag === '全部') return artworks;
+    return artworks.filter(work => work.tags && work.tags.includes(selectedTag));
+  }, [artworks, selectedTag]);
+
   const handleImageError = (e) => {
     e.target.src = 'https://via.placeholder.com/400x300?text=Image+Error';
     e.target.onerror = null;
@@ -206,52 +247,110 @@ const HomePage = () => {
     }
   };
 
-  return (
 
-        // 注意：这里去掉了 min-h-screen 的上下 padding，为了让轮播图贴顶
+    // --- 处理删除 (前端模拟删除) ---
+  const handleDelete = (id) => {
+    if (window.confirm('确定要删除这张作品吗？')) {
+        setArtworks(prev => prev.filter(item => item.id !== id));
+        // 这里应调用后端 API: await deleteArtwork(id);
+        deleteArtwork(id);
+        alert('删除成功');
+    }
+  };
+
+  // --- 处理编辑 (占位符) ---
+  const handleEdit = (artwork) => {
+    // 实际项目中这里应该打开一个 EditModal，类似 UserManagement 中的
+    alert(`编辑功能开发中...\n正在编辑: ${artwork.title}`);
+    updateArtwork(artwork.id, artwork);
+  };
+
+
+  return (
     <div className="min-h-screen bg-gray-50 pb-20">
-       {/* 1. 放置轮播图在最顶端 */}
       <Carousel />
+      
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center mb-12 mt-10 relative">
-          <h2 className="text-4xl font-bold text-center">探索摄影世界</h2>
+        {/* 控制栏区域 */}
+        <div className="flex flex-col items-center mb-8 mt-10 space-y-6">
           
-          {/* --- 4. 切换编辑/固定模式的按钮 --- */}
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className={`mt-6 px-6 py-2 rounded-full font-semibold transition-colors shadow-sm ${
-              isEditing 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            {isEditing ? '完成编辑 (固定位置)' : '编辑位置'}
-          </button>
+          {/* --- 标签过滤器 --- */}
+          <div className="flex flex-wrap justify-center gap-2">
+            {allTags.map(tag => (
+                <button
+                    key={tag}
+                    onClick={() => {
+                        setSelectedTag(tag);
+                        // 如果切换标签，建议退出编辑模式，因为排序只在全量数据下有意义
+                        if (tag !== '全部') setIsEditing(false);
+                    }}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        selectedTag === tag 
+                        ? 'bg-gray-900 text-white shadow-md scale-105' 
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                >
+                    {tag}
+                </button>
+            ))}
+          </div>
+
+          {/* --- 编辑模式开关 --- */}
+          {/* 只有在 "全部" 标签下才允许开启排序/编辑模式，防止数据错乱 */}
+          {selectedTag === '全部' ? (
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`flex items-center space-x-2 px-6 py-2 rounded-full font-semibold transition-colors shadow-sm ${
+                  isEditing 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                }`}
+              >
+                {isEditing ? (
+                    <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        <span>完成编辑</span>
+                    </>
+                ) : (
+                    <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <span>管理与排序</span>
+                    </>
+                )}
+              </button>
+          ) : (
+              <p className="text-sm text-gray-400">切换回“全部”标签以进行排序和管理</p>
+          )}
         </div>
 
+        {/* 列表区域 */}
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCenter} 
           onDragEnd={handleDragEnd}
         >
           <SortableContext 
-            items={artworks.map(a => a.id)} 
-            strategy={rectSortingStrategy} // 适合网格布局的策略
+            items={filteredArtworks.map(a => a.id)} 
+            strategy={rectSortingStrategy}
           >
-            {/* 
-              注意：这里将 columns-x 改为了 grid-cols-x。
-              Grid 布局对于拖拽排序更稳定，瀑布流(columns)会导致DOM顺序与视觉顺序不一致 
-            */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {artworks.map((artwork) => (
-                <SortableArtwork 
-                  key={artwork.id} 
-                  artwork={artwork} 
-                  isEditing={isEditing}
-                  handleImageError={handleImageError}
-                />
-              ))}
-            </div>
+            {filteredArtworks.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredArtworks.map((artwork) => (
+                    <SortableArtwork 
+                    key={artwork.id} 
+                    artwork={artwork} 
+                    isEditing={isEditing}
+                    handleImageError={handleImageError}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    />
+                ))}
+                </div>
+            ) : (
+                <div className="text-center py-20 text-gray-500">
+                    该分类下暂无作品
+                </div>
+            )}
           </SortableContext>
         </DndContext>
       </div>

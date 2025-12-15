@@ -87,6 +87,13 @@ export const loginUser = (credentials) => {
   
 };
 
+export const getBannerArtwork = () => {
+  console.log("getBannerArtwork...");
+  return request('/banners', { // 真实接口
+    method: 'GET',
+  });
+};
+
 // 用户注册
 export const registerUser = (userInfo) => {
     console.log("正在注册:", userInfo);

@@ -22,6 +22,15 @@ public class WebConfig implements WebMvcConfigurer {
         // "file:./image/" 指的是项目运行时的根目录下的 image 文件夹
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:./image/");
+
+
+        // 将 /images/** 的请求映射到项目根目录下的 images 文件夹
+        // file: 后面跟的是绝对路径，./ 表示当前项目根目录
+        registry.addResourceHandler("/image/**")
+                .addResourceLocations("file:./images/");
+
+
+
     }
 
     @Override

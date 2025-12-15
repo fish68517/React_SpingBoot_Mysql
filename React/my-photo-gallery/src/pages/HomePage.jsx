@@ -1,12 +1,15 @@
-import React, { useState, useEffect,useMemo } from 'react';
-import { getArtworks, deleteArtwork, updateArtwork} from '../api/network';
+import React, { useState, useEffect,useMemo, } from 'react';
+import { getArtworks, deleteArtwork, updateArtwork,getBannerArtwork} from '../api/network';
 import { getImageUrl } from '../utils/imageUtils';
 
 // --- 0. 引入本地图片资源 ---
 // 请确保在 src/assets 下有这三张图片，或者修改为你实际的文件名
-import banner1 from '../assets/banner1.jpg';
-import banner2 from '../assets/banner2.jpg';
-import banner3 from '../assets/banner3.jpg';
+// import banner1 from '../assets/banner1.jpg';
+// import banner2 from '../assets/banner2.jpg';
+// import banner3 from '../assets/banner3.jpg';
+
+
+
 
 // --- 1. 引入 dnd-kit 相关依赖 ---
 import {
@@ -27,51 +30,68 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 
+// --- 新版本：动态轮播图组件 ---
+const Carousel = ({ bannerArtworks }) => {
+  // 如果没有数据，显示占位或空状态
+  if (!bannerArtworks || bannerArtworks.length === 0) {
+    return (
+      <div className="relative w-full h-[300px] md:h-[500px] bg-gray-200 flex items-center justify-center">
+        <p className="text-gray-500">暂无轮播图</p>
+      </div>
+    );
+  }
 
-// --- 组件 1: 轮播图组件 (新增) ---
-const Carousel = () => {
-  const slides = [banner1, banner2, banner3];
   const [current, setCurrent] = useState(0);
 
   // 自动轮播逻辑
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-    }, 5000); // 5秒切换一次
+      setCurrent((prev) => (prev === bannerArtworks.length - 1 ? 0 : prev + 1));
+    }, 5000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [bannerArtworks.length]);
+
 
   const goToSlide = (index) => {
     setCurrent(index);
   };
 
   const prevSlide = () => {
-    setCurrent(current === 0 ? slides.length - 1 : current - 1);
+    setCurrent(current === 0 ? bannerArtworks.length - 1 : current - 1);
   };
 
   const nextSlide = () => {
-    setCurrent(current === slides.length - 1 ? 0 : current + 1);
+    setCurrent(current === bannerArtworks.length - 1 ? 0 : current + 1);
   };
 
   return (
     <div className="relative w-full h-[300px] md:h-[500px] overflow-hidden group">
       {/* 图片容器 */}
+
       <div 
         className="w-full h-full flex transition-transform duration-700 ease-in-out"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {slides.map((slide, index) => (
-          <div key={index} className="w-full h-full flex-shrink-0">
+        {bannerArtworks.map((artwork, index) => (
+          <div key={artwork.id} className="w-full h-full flex-shrink-0">
             <img 
-              src={slide} 
-              alt={`Banner ${index + 1}`} 
+              src={getImageUrl(artwork.imageUrl)}
+              alt={artwork.title || `Banner ${index + 1}`} 
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/1200x500?text=Image+Loading+Error';
+              }}
             />
+            {/* 可选：显示标题叠加在图片上 */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+              <h2 className="text-white text-2xl md:text-4xl font-bold">{artwork.title}</h2>
+              <p className="text-white/80 text-sm md:text-base mt-2">{artwork.authorName}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* 左箭头 */}
+      {/* 左右箭头和底部指示点（保持不变） */}
       <button 
         onClick={prevSlide}
         className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -79,7 +99,6 @@ const Carousel = () => {
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
       </button>
 
-      {/* 右箭头 */}
       <button 
         onClick={nextSlide}
         className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -87,9 +106,8 @@ const Carousel = () => {
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       </button>
 
-      {/* 底部指示点 */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {slides.map((_, index) => (
+        {bannerArtworks.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
@@ -182,6 +200,10 @@ const HomePage = () => {
   const [artworks, setArtworks] = useState([]);
   const [isEditing, setIsEditing] = useState(false); // 控制编辑模式状态
   const [selectedTag, setSelectedTag] = useState('全部');
+  const [bannerArtworks, setBannerArtworks] = useState([]); // 新增：专门存轮播图数据
+
+  // === 新增这一行 ===
+  const [loading, setLoading] = useState(true);  // 用于控制轮播图加载状态
 
   // 配置传感器 (鼠标和触摸)
   const sensors = useSensors(
@@ -206,6 +228,24 @@ const HomePage = () => {
     };
     loadArtworks();
   }, []);
+
+
+  // 新增：加载轮播图数据
+  useEffect(() => {
+    const loadBanners = async () => {
+      try {
+        setLoading(true);
+        const data = await getBannerArtwork(); // 假设你写了这个 API 函数
+        setBannerArtworks(data);         // data 是数组，如 [{id, title, content, image}, ...]
+      } catch (error) {
+        console.error("加载轮播图失败:", error);
+        setBannerArtworks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBanners();
+  }, []); // 只加载一次
 
 
     // --- 3. 自动计算所有唯一标签 ---
@@ -268,7 +308,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <Carousel />
+      <Carousel bannerArtworks={bannerArtworks} />
       
       <div className="container mx-auto px-4">
         {/* 控制栏区域 */}

@@ -22,6 +22,7 @@ const Header = () => (
         {/* 新增的社区页面链接 */}
         <NavLink to="/communityPage" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>技巧社区</NavLink>
         <NavLink to="/upload" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>上传作品</NavLink>
+         <NavLink to="/banner" className={({ isActive }) => isActive ? "text-blue-400" : "hover:text-blue-400 transition"}>轮播图</NavLink>
       </nav>
       <div className="space-x-4" style={{ display: 'none' }} >
           <Link to="/login" className="bg-transparent hover:bg-blue-600 border border-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">

@@ -370,3 +370,41 @@ export const publishArtwork = (artworkData) => {
         body: JSON.stringify(artworkData)
     });
 };
+
+
+// ==========================================
+// 轮播图管理接口 (Banner Management) - 使用统一的 request 封装
+// ==========================================
+
+// 获取所有轮播图（管理员管理页面用）
+export const getAllBanners = () => {
+  return request('/banners/admin/all');
+};
+
+// 前端首页轮播图（只返回启用的） - 你之前已经有一个 getBannerArtwork，可以保留或替换
+export const getBanners = () => {
+  return request('/banners');  // 对应后端 Controller 的 @GetMapping("")
+};
+
+// 新增轮播图
+export const createBanner = (bannerData) => {
+  return request('/banners', {
+    method: 'POST',
+    body: JSON.stringify(bannerData),
+  });
+};
+
+// 更新轮播图
+export const updateBanner = (id, bannerData) => {
+  return request(`/banners/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(bannerData),
+  });
+};
+
+// 删除轮播图
+export const deleteBanner = (id) => {
+  return request(`/banners/${id}`, {
+    method: 'DELETE',
+  });
+};

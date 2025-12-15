@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import Gallery3DPage from './pages/Gallery3DPage';
 import UploadPage from './pages/UploadPage';
 import CommunityPage from './pages/CommunityPage';
+import BannerPage from './pages/BannerPage';
 
 // 导入独立的登录/注册页面
 import LoginPage from './pages/LoginPage';
@@ -47,6 +48,7 @@ function App() {
         <Route path="gallery" element={<Gallery3DPage />} />
         <Route path="communityPage" element={<CommunityPage />} />
         <Route path="upload" element={<UploadPage />} />
+        <Route path="banner" element={<BannerPage />} />
       </Route>
 
       {/* --- 后台管理路由 --- */}

@@ -10,7 +10,7 @@ public class BannerCreateDTO {
     private String content;
 
 
-    private String image;       // 上传成功后传入文件名
+    private String imageUrl;       // 上传成功后传入文件名
 
     private Integer status = 1;
 
